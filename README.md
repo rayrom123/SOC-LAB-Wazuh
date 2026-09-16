@@ -6,11 +6,10 @@ This project is a small SOC automation lab built to simulate, detect, triage, an
 
 The lab uses Atomic Red Team to generate MITRE ATT&CK-based activity on a Windows endpoint, Sysmon and Wazuh Agent to collect telemetry, Wazuh Manager to detect suspicious behavior, Shuffle SOAR to filter and process alerts, and Gmail API to send incident notifications.
 
-The first validated use case detects Atomic Red Team `T1033` user discovery activity and sends a Gmail alert with an observed end-to-end notification latency of approximately 6 seconds.
 
 ## Lab Architecture
 
-The diagram below shows the main alert flow from the Windows endpoint to Wazuh, Shuffle SOAR, and Gmail.
+The workflow below shows the full alert pipeline from the Windows endpoint to Wazuh, Shuffle SOAR, and Gmail.
 
 ![SOC lab architecture](shuffle%20architecture.png)
 
@@ -31,9 +30,9 @@ Ubuntu Server VM
         | Wazuh integration webhook
         v
 Shuffle SOAR
-  - Webhook trigger
-  - Python alert filter
-  - Gmail API action
+  - Webhook trigger (receives Wazuh JSON alerts)
+  - Python alert filter (forwards only high-value alerts)
+  - Gmail API action (sends rapid notifications to the SOC team)
         |
         | Incident notification
         v
@@ -44,13 +43,9 @@ Gmail
 ## Network Layout
 
 ```text
-Host-only network: 192.168.81.0/24
-
 Ubuntu Wazuh Server: 192.168.81.101
 Windows Target VM:   192.168.81.102
 ```
-
-The host-only network is used for lab communication between Wazuh and the Windows endpoint. NAT is used on both VMs for Internet access when installing packages and tools.
 
 ## Components
 
@@ -177,13 +172,11 @@ Example structure:
 </integration>
 ```
 
-Do not commit real webhook URLs, API keys, OAuth client secrets, or passwords.
-
 ### Alert Filtering Logic
 
-The Python step filters Wazuh alerts so Gmail is not flooded by noisy events.
+The Python step filters Wazuh alerts so Gmail is not flooded by noisy events. If needed, the SOC team can still review the full telemetry in Wazuh Manager.
 
-The current logic sends email only when the alert matches one of the selected lab cases:
+The current logic sends email only when the alert matches one of the selected lab cases. This approach can be scaled to meet broader enterprise detection and notification needs:
 
 ```text
 CASE-001: command line contains whoami
@@ -206,6 +199,10 @@ SOC_LAB
 ```
 
 This keeps lab notifications organized and prevents the inbox from being flooded.
+
+Example Gmail notification:
+
+![SOC lab Gmail notification](email_notification.png)
 
 Example email subject:
 
@@ -234,33 +231,6 @@ Parent:
 Timestamp:
 2026-09-15T18:11:14.586+0000
 ```
-
-## Latency Measurement
-
-For the first validated case, Wazuh generated an alert at:
-
-```text
-2026-09-15T18:11:14.586+0000
-```
-
-Gmail received the notification at:
-
-```text
-Tue, 15 Sep 2026 13:11:21 -0500
-```
-
-Converted to UTC:
-
-```text
-2026-09-15T18:11:21Z
-```
-
-Approximate end-to-end latency:
-
-```text
-6.4 seconds
-```
-
 ## Atomic Red Team Commands
 
 Set the Atomic Red Team path:
@@ -294,50 +264,4 @@ Run and clean up CASE-003:
 ```powershell
 Invoke-AtomicTest T1053.005 -TestNumbers 1 -PathToAtomicsFolder $Atomics
 Invoke-AtomicTest T1053.005 -TestNumbers 1 -Cleanup -PathToAtomicsFolder $Atomics
-```
-
-## Screenshots
-
-Add screenshots here:
-
-```text
-screenshots/
-  wazuh-agent-active.png
-  wazuh-threat-hunting-t1033.png
-  shuffle-workflow.png
-  shuffle-run-success.png
-  gmail-soc-lab-label.png
-```
-
-## Current Status
-
-- Wazuh Manager is deployed on Ubuntu Server.
-- Windows endpoint is registered and active in Wazuh.
-- Sysmon events are collected by Wazuh.
-- Atomic Red Team is installed and able to run `T1033`.
-- Wazuh alerts are forwarded to Shuffle through webhook integration.
-- Shuffle filters matching Atomic case alerts.
-- Gmail API sends incident notifications.
-- Gmail label `SOC_LAB` is used to organize SOC lab notifications.
-
-## Roadmap
-
-- Add CASE-002 and CASE-003 to the Shuffle filtering logic.
-- Add VirusTotal enrichment for hashes, IP addresses, and domains.
-- Add TheHive case creation for selected high-value alerts.
-- Build a C# SOC dashboard that stores Wazuh and Shuffle alerts in SQLite.
-- Add incident timeline visualization per Atomic Red Team scenario.
-- Add false positive handling and analyst verdicts.
-
-## Security Notes
-
-- This lab is intended for local, controlled security testing only.
-- Do not run destructive Atomic Red Team tests without reviewing their commands.
-- Do not commit credentials, OAuth client secrets, API keys, or webhook URLs.
-- Keep attack simulation inside the lab network.
-
-## Resume Bullet
-
-```text
-Built a MITRE ATT&CK-based SOC automation lab using Wazuh, Sysmon, Atomic Red Team, Shuffle SOAR, and Gmail API to detect Windows endpoint discovery behavior, filter noisy alerts, and send labeled incident notifications with approximately 6-second end-to-end latency.
 ```
