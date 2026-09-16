@@ -30,9 +30,9 @@ Ubuntu Server VM
         | Wazuh integration webhook
         v
 Shuffle SOAR
-  - Webhook trigger (receives Wazuh JSON alerts)
-  - Python alert filter (forwards only high-value alerts)
-  - Gmail API action (sends rapid notifications to the SOC team)
+  - Webhook trigger
+  - Python alert filter
+  - Gmail API action
         |
         | Incident notification
         v
