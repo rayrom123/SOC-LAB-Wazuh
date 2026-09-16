@@ -49,19 +49,27 @@ Windows Target VM:   192.168.81.102
 
 ## Components
 
-| Location | Component | Purpose |
-|---|---|---|
-| Windows 10 Endpoint VM (`192.168.81.102`) | Wazuh Agent | Forwards Windows and Sysmon event logs to Wazuh Manager |
-| Windows 10 Endpoint VM (`192.168.81.102`) | Sysmon | Generates detailed process, file, and command-line telemetry |
-| Windows 10 Endpoint VM (`192.168.81.102`) | Atomic Red Team | Runs controlled MITRE ATT&CK simulations for detection testing |
-| Windows 10 Endpoint VM (`192.168.81.102`) | Invoke-AtomicRedTeam | PowerShell framework used to execute selected Atomic tests |
-| Ubuntu Server VM (`192.168.81.101`) | Wazuh Manager | Receives endpoint telemetry, applies detection rules, and generates alerts |
-| Ubuntu Server VM (`192.168.81.101`) | Wazuh Indexer | Stores indexed alert and event data |
-| Ubuntu Server VM (`192.168.81.101`) | Wazuh Dashboard | Provides the web interface for threat hunting and alert review |
-| Ubuntu Server VM (`192.168.81.101`) | Wazuh Integrator | Sends selected Wazuh alerts to the Shuffle webhook |
-| Cloud | Shuffle SOAR | Receives Wazuh alerts, filters relevant cases, and triggers response actions |
-| Cloud | Gmail API | Sends SOC lab incident notifications |
-| Cloud | Gmail Label/Filter | Organizes SOC lab emails under the `SOC_LAB` label |
+### Virtual Machines
+
+**Windows 10 VM -> window1 (`192.168.81.102`)**
+
+- Sysmon: monitors process, file, and command-line activity
+- Wazuh Agent: sends Windows and Sysmon events to Wazuh Manager
+- Atomic Red Team: runs controlled MITRE ATT&CK simulations
+- Invoke-AtomicRedTeam: executes selected Atomic tests from PowerShell
+
+**Ubuntu Server VM -> wazuh-manager (`192.168.81.101`)**
+
+- Wazuh Manager: receives endpoint telemetry and generates alerts
+- Wazuh Indexer: stores indexed alert and event data
+- Wazuh Dashboard: visualizes alerts and supports threat hunting
+- Wazuh Integrator: forwards selected alerts to the Shuffle webhook
+
+### Cloud / External
+
+- Shuffle SOAR: filters Wazuh alerts and triggers response actions
+- Gmail API: sends SOC lab incident notifications
+- Gmail label/filter: organizes notifications under the `SOC_LAB` label
 
 ## Implemented Detection Case
 
@@ -149,15 +157,26 @@ Wazuh should detect scheduled task creation or suspicious command execution. Shu
 
 ## Atomic Red Team References
 
-The table below maps each lab case to the Atomic Red Team technique and test number used in this project. These links point to the official Red Canary Atomic Red Team documentation so the test IDs and commands can be verified.
+These are the Atomic Red Team tests used as references for the lab scenarios:
 
-| Lab case | Technique | Atomic test | Test name | Main command evidence | Reference |
-|---|---|---|---|---|---|
-| CASE-001 | `T1033` | Test `#8` | User Discovery - whoami | `whoami /all` | [T1033 Atomic Test #8](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1033/T1033.md#atomic-test-8-user-discovery---whoami) |
-| CASE-002 | `T1082` | Test `#1` | System Information Discovery | `systeminfo` | [T1082 Atomic Test #1](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1082/T1082.md#atomic-test-1-system-information-discovery) |
-| CASE-002 | `T1057` | Test `#2` | Process Discovery - tasklist | `tasklist` | [T1057 Atomic Test #2](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1057/T1057.md#atomic-test-2-process-discovery---tasklist) |
-| CASE-002 | `T1016` | Test `#1` | System Network Configuration Discovery on Windows | `ipconfig /all` | [T1016 Atomic Test #1](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1016/T1016.md#atomic-test-1-system-network-configuration-discovery-on-windows) |
-| CASE-003 | `T1053.005` | Test `#1` | Scheduled Task Startup Script | `schtasks /create` | [T1053.005 Atomic Test #1](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1053.005/T1053.005.md#atomic-test-1-scheduled-task-startup-script) |
+**CASE-001: User Discovery**
+
+- `T1033` - Atomic Test `#8`: User Discovery - whoami
+- Command evidence: `whoami /all`
+- Reference: [T1033 Atomic Test #8](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1033/T1033.md#atomic-test-8-user-discovery---whoami)
+
+**CASE-002: System and Process Discovery**
+
+- `T1082` - Atomic Test `#1`: System Information Discovery (`systeminfo`)
+- `T1057` - Atomic Test `#2`: Process Discovery - tasklist (`tasklist`)
+- `T1016` - Atomic Test `#1`: System Network Configuration Discovery on Windows (`ipconfig /all`)
+- References: [T1082](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1082/T1082.md#atomic-test-1-system-information-discovery), [T1057](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1057/T1057.md#atomic-test-2-process-discovery---tasklist), [T1016](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1016/T1016.md#atomic-test-1-system-network-configuration-discovery-on-windows)
+
+**CASE-003: Scheduled Task Persistence**
+
+- `T1053.005` - Atomic Test `#1`: Scheduled Task Startup Script
+- Command evidence: `schtasks /create`
+- Reference: [T1053.005 Atomic Test #1](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1053.005/T1053.005.md#atomic-test-1-scheduled-task-startup-script)
 
 ## Shuffle SOAR Workflow
 
