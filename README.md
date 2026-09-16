@@ -10,6 +10,10 @@ The first validated use case detects Atomic Red Team `T1033` user discovery acti
 
 ## Lab Architecture
 
+The diagram below shows the main alert flow from the Windows endpoint to Wazuh, Shuffle SOAR, and Gmail.
+
+![SOC lab architecture](shuffle%20architecture.png)
+
 ```text
 Windows 10 Endpoint VM
   - Wazuh Agent
